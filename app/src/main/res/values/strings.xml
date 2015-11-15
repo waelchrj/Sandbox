@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">YetAnotherASProject</string>
+    <string name="title_activity_first_generic">FirstGenericActivity</string>
+    <string name="title_activity_second_generic">SecondGenericActivity</string>
+</resources>
