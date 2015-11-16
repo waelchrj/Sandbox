@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.Toast;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,27 +24,12 @@ public class FirstGenericActivity extends AppCompatActivity {
     //required to use openCV Library
     static {System.loadLibrary("opencv_java3");}
 
-    //declare the reference image array
-    private static Integer[] referenceImages = new Integer[8];
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_first_generic);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-    }
-
-    //method to populate the reference image array with interger ids
-    private void populateReferenceImagesArray(){
-        referenceImages[0] = R.drawable.testimageone;
-        referenceImages[1] = R.drawable.testimagetwo;
-        referenceImages[2] = R.drawable.testimagethree;
-        referenceImages[3] = R.drawable.testimageone;
-        referenceImages[4] = R.drawable.testimagefive;
-        referenceImages[5] = R.drawable.testimagesix;
-        referenceImages[6] = R.drawable.testimageseven;
-        referenceImages[7] = R.drawable.testimageeight;
     }
 
     //image four button listener
@@ -54,12 +40,15 @@ public class FirstGenericActivity extends AppCompatActivity {
     //method that performs the match
     public void attemptMatch(){
 
+        //declare match percent and initiate counter
         double matchPercent=10;
         int a=0;
 
-        //populate reference image array
-        populateReferenceImagesArray();
+        //a new instance of the reference database
+        ReferenceDatabase nRFD=new ReferenceDatabase();
+        nRFD.populate();
 
+        //create the matrices required for the first query image and the comparison
         MatOfKeyPoint k1 = new MatOfKeyPoint();
         Mat d1 = new Mat();
         FeatureDetector detector = FeatureDetector.create(FeatureDetector.ORB);
@@ -73,7 +62,7 @@ public class FirstGenericActivity extends AppCompatActivity {
         try{
 
             //load the sample image from the drawable directory
-            Mat img1 = Utils.loadResource(newContext, R.drawable.testimagefour, Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
+            Mat img1=Utils.loadResource(newContext, R.raw.testimagefour, Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
 
             //Detect the key features of the image
             detector.detect(img1, k1);
@@ -88,7 +77,7 @@ public class FirstGenericActivity extends AppCompatActivity {
                 int b=0;
 
                 //load reference image
-                Mat img2=Utils.loadResource(newContext, referenceImages[a], Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
+                Mat img2=Utils.loadResource(newContext, nRFD.referenceImages[a][0], Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
 
                 //Initialize key features matrix
                 MatOfKeyPoint k2 = new MatOfKeyPoint();
@@ -111,8 +100,9 @@ public class FirstGenericActivity extends AppCompatActivity {
                 while (b<matches.height()){
 
                     int c=Math.round(matchesDMatch.get(b).distance);
+
                     if (c<55){
-                        goodMatches.add(matchesDMatch.get(b).distance);
+                    goodMatches.add(matchesDMatch.get(b).distance);
                     }
 
                     b=b+1;
@@ -125,9 +115,13 @@ public class FirstGenericActivity extends AppCompatActivity {
 
             }
 
-            System.out.println("\nBest Match is reference image "+a);
+            CharSequence text ="Best match is "+ nRFD.askMeANumberAndIllGiveYouAString(nRFD.referenceImages[a][1]);
+            Toast toast=Toast.makeText(newContext, text, Toast.LENGTH_LONG);
+            toast.show();
 
-        }catch(IOException e){
+        }
+
+        catch(IOException e){
             System.out.println("IOException Thrown and Caught:  " + e);
         }
 
