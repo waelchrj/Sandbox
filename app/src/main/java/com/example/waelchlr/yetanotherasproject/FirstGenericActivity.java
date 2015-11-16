@@ -6,18 +6,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Toast;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import org.opencv.android.Utils;
-import org.opencv.core.DMatch;
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfDMatch;
-import org.opencv.imgcodecs.*;
-import org.opencv.core.MatOfKeyPoint;
-import org.opencv.features2d.DescriptorExtractor;
-import org.opencv.features2d.DescriptorMatcher;
-import org.opencv.features2d.FeatureDetector;
 
 public class FirstGenericActivity extends AppCompatActivity {
 
@@ -34,97 +22,17 @@ public class FirstGenericActivity extends AppCompatActivity {
 
     //image four button listener
     public void imageFourListener(View v){
-         attemptMatch();
+        Context newContext=this.getApplicationContext();
+        MatchMaker m=new MatchMaker();
+        String buildingName=m.attemptMatch(newContext, R.raw.testimagefour);
+        displayMatchResult(buildingName);
     }
 
-    //method that performs the match
-    public void attemptMatch(){
-
-        //declare match percent and initiate counter
-        double matchPercent=10;
-        int a=0;
-
-        //a new instance of the reference database
-        ReferenceDatabase nRFD=new ReferenceDatabase();
-        nRFD.populate();
-
-        //create the matrices required for the first query image and the comparison
-        MatOfKeyPoint k1 = new MatOfKeyPoint();
-        Mat d1 = new Mat();
-        FeatureDetector detector = FeatureDetector.create(FeatureDetector.ORB);
-        DescriptorExtractor extractor = DescriptorExtractor.create(DescriptorExtractor.ORB);
-        DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
-        MatOfDMatch matches = new MatOfDMatch();
-
-        //define application context
-        Context newContext=getApplicationContext();
-
-        try{
-
-            //load the sample image from the drawable directory
-            Mat img1=Utils.loadResource(newContext, R.raw.testimagefour, Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
-
-            //Detect the key features of the image
-            detector.detect(img1, k1);
-
-            //Extract descriptors from the image
-            extractor.compute(img1, k1, d1);
-
-            //Begin loop for matching
-            while (matchPercent<40){
-
-                //initialize counter
-                int b=0;
-
-                //load reference image
-                Mat img2=Utils.loadResource(newContext, nRFD.referenceImages[a][0], Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
-
-                //Initialize key features matrix
-                MatOfKeyPoint k2 = new MatOfKeyPoint();
-
-                //Initialize descriptor matrix
-                Mat d2 = new Mat();
-
-                //Detect the key features of the reference images
-                detector.detect(img2, k2);
-
-                //Extract the descriptors from the image
-                extractor.compute(img2, k2, d2);
-
-                //Match points of two images
-                matcher.match(d1,d2,matches);
-
-                List<DMatch> matchesDMatch = matches.toList();
-                ArrayList<Float> goodMatches = new ArrayList<>();
-
-                while (b<matches.height()){
-
-                    int c=Math.round(matchesDMatch.get(b).distance);
-
-                    if (c<55){
-                    goodMatches.add(matchesDMatch.get(b).distance);
-                    }
-
-                    b=b+1;
-
-                }
-
-                //Advance through the reference photo array
-                a=a+1;
-                matchPercent=goodMatches.size();
-
-            }
-
-            CharSequence text ="Best match is "+ nRFD.askMeANumberAndIllGiveYouAString(nRFD.referenceImages[a][1]);
-            Toast toast=Toast.makeText(newContext, text, Toast.LENGTH_LONG);
-            toast.show();
-
-        }
-
-        catch(IOException e){
-            System.out.println("IOException Thrown and Caught:  " + e);
-        }
-
+    public void displayMatchResult(String buildingName){
+        Context newContext=this.getApplicationContext();
+        CharSequence text ="Best match is "+buildingName;
+        Toast toast=Toast.makeText(newContext, text, Toast.LENGTH_SHORT);
+        toast.show();
     }
 
 }
